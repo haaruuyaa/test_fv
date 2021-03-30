@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\LogInterface;
+use App\Services\LogServices;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -14,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         //
+        $this->app->bind(
+            LogInterface::class,
+            LogServices::class
+        );
     }
 
     /**
