@@ -91,15 +91,15 @@ php artisan db:seed
 
 ```mysql
 
-select d.driver_id as driver_id,
-       SUM(IF(state like 'COMPLETED%', 1, 0)) as number_of_completed_rides,
-       SUM(IF(state like 'CANCELLED%', 1, 0)) as number_of_cancelled_rides,
-       COUNT(DISTINCT CASE WHEN(state = 'COMPLETED') THEN passenger_id END) as number_of_unique_passengers,
-       ROUND(IF(state = 'COMPLETED', b.fare, 0), 2)              as total_fare,
-       ROUND(IF(state = 'COMPLETED', (b.fare * 20) / 100, 0), 2) as total_commission
+select d.driver_id                                                           as driver_id,
+       COUNT(CASE WHEN (state = 'COMPLETED') THEN 1 END)                     as number_of_completed_rides,
+       COUNT(CASE WHEN (state like 'CANCELLED%') THEN 1 END)                 as number_of_cancelled_rides,
+       COUNT(DISTINCT CASE WHEN (state = 'COMPLETED') THEN passenger_id END) as number_of_unique_passengers,
+       SUM(CASE WHEN state = 'COMPLETED' THEN b.fare END) as total_fare,
+       SUM(CASE WHEN state = 'COMPLETED' THEN ROUND((b.fare * 20)/100,2) END) as total_commission
 from bookings as b
          join drivers d on b.driver_id = d.driver_id
-where (email like '%fvdrive%' or email like '%fvtaxi%')
+where (email like 'fvdrive%' or email like 'fvtaxi%')
 group by b.driver_id
 ;
 
