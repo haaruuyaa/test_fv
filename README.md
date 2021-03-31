@@ -1,61 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# FV Technical Assignment
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
 
-## About Laravel
+## Challenge 1
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+To answer the first challenge , I have created 3 Table which consist below :  
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+```mysql
+create table product
+(
+    id            bigint unsigned auto_increment
+        primary key,
+    product_name  varchar(50)   not null,
+    product_qty   int           not null,
+    product_price decimal(9, 2) not null,
+    created_at    timestamp     null,
+    updated_at    timestamp     null
+)
+    collate = utf8mb4_unicode_ci;
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```mysql
+create table `order`
+(
+    id         bigint unsigned auto_increment
+        primary key,
+    user       varchar(20)   not null,
+    product_id int           not null,
+    amount     decimal(9, 2) not null,
+    qty        int           not null,
+    created_at timestamp     null,
+    updated_at timestamp     null
+)
+    collate = utf8mb4_unicode_ci;
 
-## Learning Laravel
+create index order_product_id_index
+    on `order` (product_id);
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```mysql
+create table items
+(
+    id         varchar(10) not null
+        primary key,
+    product_id int         not null,
+    order_id   int         null,
+    created_at timestamp   null,
+    updated_at timestamp   null
+)
+    collate = utf8mb4_unicode_ci;
 
-## Laravel Sponsors
+create index items_order_id_index
+    on items (order_id);
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+create index items_product_id_index
+    on items (product_id);
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[OP.GG](https://op.gg)**
+```
 
-## Contributing
+As you can see from the table above.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+When the user click the checkout at the same time , the first thing the it will do is check if the 
+current stock for the selected product is still available or not. If the stock is still available, then 
+proceed to perform another checking which is if the requested quantity is available with the current stock.
 
-## Code of Conduct
+If the requested quantity is more than the current stock , the checkout part will be stop here and return as 
+Product stock is not enough.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+If the requested quantity meets the requirement of the stock , then it will create one data in the Order table
+and then will also update the Product table to reduce the current stock by the requested quantity. 
 
-## Security Vulnerabilities
+After the program update the Product stock, then based on how much the requested quantity is the Item table will
+be updated , the logic is to get the list of item based on the selected product and mark it as sold by fill up the
+Order ID in the column order_id on table Items.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
+## Usage
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan migrate
+
+php artisan db:seed
+
+./vendor/bin/phpunit --filter 'Tests\\Feature'
+
+```
+
+## Challenge 2
+
+```mysql
+
+select d.driver_id as driver_id,
+       SUM(IF(state like 'COMPLETED%', 1, 0)) as number_of_completed_rides,
+       SUM(IF(state like 'CANCELLED%', 1, 0)) as number_of_cancelled_rides,
+       COUNT(DISTINCT CASE WHEN(state = 'COMPLETED') THEN passenger_id END) as number_of_unique_passengers,
+       ROUND(IF(state = 'COMPLETED', b.fare, 0), 2)              as total_fare,
+       ROUND(IF(state = 'COMPLETED', (b.fare * 20) / 100, 0), 2) as total_commission
+from bookings as b
+         join drivers d on b.driver_id = d.driver_id
+where (email like '%fvdrive%' or email like '%fvtaxi%')
+group by b.driver_id
+;
+
+```
+
+Above are the SQL that I write to perform the test. I use `DB` facades and using `Query Builder` 
+instead of the `Eloquent`
+
+## Challenge 3
+
+Regarding the challenge 3 , what I have done on the code is to combine all the addresses first,
+and then divide by whitespace to an Array , and will input one by one to the specific Address array.
+
+The test unit is written in the Feature folder.
