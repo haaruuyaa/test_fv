@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Repository\DriverRepository;
+use App\Repository\Interfaces\DriverInterface;
 use App\Repository\Interfaces\ItemsInterface;
 use App\Repository\Interfaces\ProductInterface;
 use App\Repository\Interfaces\SequenceInterface;
@@ -33,6 +35,11 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(
             SequenceInterface::class,
             SequenceRepository::class
+        );
+
+        $this->app->bind(
+            DriverInterface::class,
+            DriverRepository::class
         );
     }
 
