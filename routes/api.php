@@ -23,3 +23,4 @@ Route::resource('product', 'ProductController');
 Route::resource('item','ItemsController');
 Route::post('order','OrderController@create_order');
 Route::get('custom-driver','DriverController@listCustomerDriver');
+Route::post('address','AddressController@checkAddress');
